@@ -15,6 +15,7 @@ class ReduxLazyScroll extends Component {
   constructor(props) {
     super(props);
     this.scrollFunction = this.scrollListener.bind(this);
+    this.setScrollTop = this.setScrollTop.bind(this);
   }
 
   componentDidMount () {
@@ -23,6 +24,7 @@ class ReduxLazyScroll extends Component {
 
   componentDidUpdate () {
     this.attachScrollListener();
+    this.setScrollTop(this.props.scrollTop)
   }
 
   componentWillUnmount () {
@@ -43,9 +45,13 @@ class ReduxLazyScroll extends Component {
 
   windowScrollListener() {
     const el = ReactDOM.findDOMNode(this);
-
     const windowScrollTop = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
     const elTotalHeight = topPosition(el) + el.offsetHeight;
+
+    if (this.props.onScroll) {
+      this.props.onScroll(topPosition(el))
+    }
+
     return elTotalHeight - windowScrollTop - window.innerHeight;
   }
 
@@ -55,6 +61,10 @@ class ReduxLazyScroll extends Component {
     const totalContainerHeight = el.scrollHeight;
     const containerFixedHeight = el.offsetHeight;
     const bottomScrollPos = topScrollPos + containerFixedHeight;
+
+    if (this.props.onScroll) {
+      this.props.onScroll(topScrollPos)
+    }
 
     return (totalContainerHeight - bottomScrollPos);
   }
@@ -72,6 +82,13 @@ class ReduxLazyScroll extends Component {
     const el = this.targetElement();
     el.removeEventListener('scroll', this.scrollFunction, true);
     el.removeEventListener('resize', this.scrollFunction, true);
+  }
+
+  setScrollTop(top) {
+    if (top >= 0) {
+      const el = ReactDOM.findDOMNode(this);
+      el.scrollTop = top
+    }
   }
 
   render() {
@@ -97,6 +114,7 @@ ReduxLazyScroll.propTypes = {
     PropTypes.number,
     PropTypes.string
   ]),
+  scrollTop: PropTypes.number
 };
 ReduxLazyScroll.defaultProps = {
   hasMore: true,
